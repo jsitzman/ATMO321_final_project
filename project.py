@@ -6,7 +6,7 @@ import numpy as np
 import netCDF4
 %pylab inline
 #the following is the pressure levels available to be used: [ 1000.   925.   850.   700.   600.   500.   400.   300.   250.   200.
-#                                                                                        150.   100.    70.    50.    30.    20.    10.]
+#     f                                                                                   150.   100.    70.    50.    30.    20.    10.]
 
 the_file = ""
 #creates the file name

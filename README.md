@@ -1,3 +1,4 @@
 # ATMO321_final_project
-group proect
+group project
 Jason Sitzman
+Madeleine Walker

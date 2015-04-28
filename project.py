@@ -48,9 +48,11 @@ def plotpanel(variable1_dict, variable2_dict):
 def on_button_clicked(b):
     try: #file might not exist, must check for it
         ncf = netCDF4.Dataset(the_file) 
+        print "file found"
         #getdict(1, 2) #uncomment this line when the function is complete, change "1" and "2" to real values
         #plotpanel(1, 2, 3) #uncomment this line when the function is complete, change "1", "2", and "3" to real values
     except Exception, excp:
+        print the_file
         print "ERROR: failed to open file."
         print "File could not be found or does not exist."
     

@@ -11,8 +11,21 @@ import netCDF4
 the_file = ""
 #creates the file name
 def getfile(year, month, day, time):
-    the_file = "ERAINTERIM/" + str(year) + "%02d" % (month, ) + "/" + str(year) + "%02d" % (month, ) + str(day) + "T" + "%02d" % (time, ) + "0000Z.ncd"
-    print the_file
+    global the_file
+    
+    #the line below does not work, currently being worked on...should be up soon
+    #this line will use the globally shared shared1/sarava/ERAINTERIM folder
+    
+    #the_file = "../../../../../shared1/sarava/ERAINTERIM/" + str(year) + "%02d" % (month, ) + "/" + str(year) + "%02d" % (month, ) + str(day) + "T" + "%02d" % (time, ) + "0000Z.ncd" 
+    
+    
+    
+    #this line is used if the data files are used in the same folder as the notebook.
+    #     folders should be named 201411 and 201412
+    
+    the_file = str(year) + "%02d" % (month, ) + "/" + str(year) + "%02d" % (month, ) + str(day) + "T" + "%02d" % (time, ) + "0000Z.ncd"
+    
+    return the_file
     
 
 #this method is needed to create the widgets and make the program interactive

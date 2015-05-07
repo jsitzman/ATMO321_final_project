@@ -1,14 +1,14 @@
 from IPython.html.widgets import interact, fixed
 from IPython.html import widgets
 from IPython.display import display # Used to display widgets in the notebook
-import mpl_toolkits.basemap as bm
+from mpl_toolkits.basemap import Basemap
 import numpy as np
 import netCDF4
 %pylab inline
-#the following is the pressure levels available to be used: [ 1000.   925.   850.   700.   600.   500.   400.   300.   250.   200.
-#                                                                                        150.   100.    70.    50.    30.    20.    10.]
 
+#global variables
 the_file = ""
+
 #creates the file name
 def getfile(year, month, day, time):
     global the_file
@@ -31,30 +31,96 @@ def show_file(year, month, day, time):
 
 # returns the data from the specified file at a specified pressure level for a particular variable type (such as temperature)
 def getdict(ncfile, variable_name, level_index):
-    #write code here!!!
-    print "not done" #delete this line once the function is complete
+    dictionary = {}
+    extract = ncfile.variables[variable_name]
+    dictionary["data"] = extract[level_index,:,:]
+    dictionary["units"] = str(extract.units)
+    dictionary["latitudes"] = ncfile.variables["Latitude"][:]
+    dictionary["longitudes"] = ncfile.variables["Longitude"][:]
+    return dictionary
 
     
 #plots the variables specified
 #the first variable will be plotted as a contour fill color map
 #the second variable will be plotted on top of the first variable as contour lines
 def plotpanel(variable1_dict, variable2_dict):
-    #write code here!!!
-    print "not done" #delete this line once the function is complete
+    my_map = Basemap(projection='lcc', resolution = 'l', area_thresh = 1000.0, lat_0 = 35, lon_0 = 275,
+                                                                 llcrnrlon=240, llcrnrlat=18, urcrnrlon=310, urcrnrlat=52)
+    my_map.drawcoastlines()
+    my_map.drawcountries()
+    my_map.drawmapboundary()
+    my_map.drawmeridians(np.arange(0, 360, 30), labels=[0,0,0,1])
+    my_map.drawparallels(np.arange(-90, 90, 15), labels=[1,0,0,0])
+    
+    values1 = variable1_dict.values()
+    keys1 = variable1_dict.keys()
+    lon1_data = values1[1]
+    lat1_data = values1[2]
+    lonall1, latall1 = np.meshgrid(lon1_data, lat1_data)
+    lonproj1, latproj1 = my_map(lonall1, latall1)
+    if(variable2_dict != 0):
+        values2 = variable2_dict.values()
+        keys2 = variable2_dict.keys()
+        lon2_data = values2[1]
+        lat2_data = values2[2]
+        lonall2, latall2 = np.meshgrid(lon2_data, lat2_data)
+        lonproj2, latproj2 = my_map(lonall2, latall2)
+        contours = pylab.contour(lonproj2, latproj2, values2[3], 17, colors='k')
+        contours.clabel(fontsize=9, inline=1)
+    pylab.contourf(lonproj1, latproj1, values1[3], 10, cmap=cm.jet)
+    if(variable2_dict == 0):
+        colorbar(orientation='horizontal', shrink=.7, pad = 0.05)
+    else:
+        colorbar(orientation='horizontal', shrink=.7, pad = 0.05)
+    
+    #['units', 'longitudes', 'latitudes', 'data']
+    print "plotting data..."
     
 
 #this function is called whenever the "plot data" button is pressed
 #note: this function is called 1 time per click, but nothing graphically will change if the sliders are not changed
 def on_button_clicked(b):
+    success = False;
+    
     try: #file might not exist, must check for it
-        ncf = netCDF4.Dataset(the_file) 
-        print "file found"
-        #getdict(1, 2) #uncomment this line when the function is complete, change "1" and "2" to real values
-        #plotpanel(1, 2, 3) #uncomment this line when the function is complete, change "1", "2", and "3" to real values
-    except Exception, excp:
+        ncf = netCDF4.Dataset(the_file)
+        success = True;
         print the_file
+    except Exception, excp:
+        #print the_file
         print "ERROR: failed to open file."
         print "File could not be found or does not exist."
+        
+    if(success):
+        geo_height_data300 = getdict(ncf, "Z", 19)
+        u_wind_data = getdict(ncf, "u", 19)
+        
+        geo_height_data500 = getdict(ncf, "Z", 15)
+        r_vorticity_data = getdict(ncf, "vor", 15)
+        
+        humidity_data = getdict(ncf, "RH", 11)
+        velocity_data = getdict(ncf, "w", 11)
+        
+        temp_data = getdict(ncf, "T", 0)
+        #print temp_data.values()[3]
+        
+        #plot stuff
+        pylab.rcParams['figure.figsize'] = (20.0, 10.0)
+        pylab.subplot(221)
+        plotpanel(u_wind_data, geo_height_data300)
+        pylab.title("GH and wind speed at upper trop")
+        
+        pylab.subplot(222)
+        plotpanel(r_vorticity_data, geo_height_data500)
+        pylab.title("GH and relative vorticity at mid trop")
+        
+        pylab.subplot(223)
+        plotpanel(humidity_data, velocity_data,)
+        pylab.title("Relative humidity and vertical velocity at lower trop")
+        
+        pylab.subplot(224)
+        plotpanel(temp_data, 0)
+        pylab.title("Air Temperature near surface")
     
     
 # main program
